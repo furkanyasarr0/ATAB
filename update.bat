@@ -15,8 +15,9 @@ reg add "HKCU\Software\Classes\atab-update\shell\open\command" /ve /d "\"%~dp0up
 if exist ".git" (
     where git >nul 2>&1
     if %ERRORLEVEL% EQU 0 (
-        echo [1/2] Pulling latest changes from GitHub...
-        git pull origin main
+        echo [1/2] Syncing latest changes from GitHub...
+        git fetch origin main
+        git reset --hard origin/main
         goto FINISH
     )
 )
