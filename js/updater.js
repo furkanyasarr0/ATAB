@@ -2,8 +2,8 @@
 
 const UpdateManager = {
   // Varsayılan GitHub Deposu (Kullanıcı adı / Repo adı)
-  DEFAULT_REPO: 'furkanksl/ATAB',
-  repo: 'furkanksl/ATAB',
+  DEFAULT_REPO: 'furkanyasarr0/ATAB',
+  repo: 'furkanyasarr0/ATAB',
   currentVersion: '1.0.0',
   latestRelease: null,
   isChecking: false,

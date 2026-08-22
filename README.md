@@ -67,7 +67,7 @@
 1. Bu depoyu indirin:
    - **Yeşil `Code` butonuna tıklayıp `Download ZIP` deyin** ve bir klasöre çıkartın, ya da:
    ```bash
-   git clone https://github.com/KULLANICI_ADINIZ/ATAB.git
+   git clone https://github.com/furkanyasarr0/ATAB.git
    ```
 2. Tarayıcınızda (Chrome, Brave, Edge, Opera) eklentiler sayfasına gidin:
    - Chrome: `chrome://extensions`
