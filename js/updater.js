@@ -1,4 +1,4 @@
-// ATAB - In-App GitHub Update Manager (Tek Tıkla Doğrudan Güncelleme)
+// ATAB - In-App GitHub Update Manager (Releases Gerektirmeyen Doğrudan Güncelleme)
 
 const UpdateManager = {
   // Varsayılan GitHub Deposu (Kullanıcı adı / Repo adı)
@@ -24,7 +24,7 @@ const UpdateManager = {
 
       this.setupEventListeners();
 
-      // Arka planda periyodik kontrol (son kontrolden 4 saat geçmişse)
+      // Arka planda periyodik kontrol (son kontrolden 2 saat geçmişse)
       const lastCheck = await StorageManager.get('atab_last_update_check') || 0;
       const cachedUpdate = await StorageManager.get('atab_cached_update');
       const now = Date.now();
@@ -34,8 +34,8 @@ const UpdateManager = {
         this.showTopBarBadge(cachedUpdate);
       }
 
-      // 4 saat geçtiyse veya hiç kontrol edilmediyse arka planda kontrol et
-      if (now - lastCheck > 4 * 60 * 60 * 1000 || !lastCheck) {
+      // 2 saat geçtiyse veya hiç kontrol edilmediyse arka planda kontrol et
+      if (now - lastCheck > 2 * 60 * 60 * 1000 || !lastCheck) {
         this.check(false);
       }
     } catch (err) {
@@ -106,7 +106,7 @@ const UpdateManager = {
     return false;
   },
 
-  // Güncelleme Kontrolü
+  // Güncelleme Kontrolü (Doğrudan GitHub manifest.json dosyasını sorgular - Release gerektirmez!)
   async check(isManual = false) {
     if (this.isChecking) return;
     this.isChecking = true;
@@ -118,26 +118,47 @@ const UpdateManager = {
     }
 
     try {
-      // 1. GitHub Releases API'den son sürümü sorgula
-      const response = await fetch(`https://api.github.com/repos/${this.repo}/releases/latest`, {
-        headers: { 'Accept': 'application/vnd.github.v3+json' },
-        cache: 'no-cache'
-      });
+      // 1. GitHub Raw üzerinden manifest.json'ı çek (Zaman damgası ile önbellek baypas edilir)
+      const rawManifestUrl = `https://raw.githubusercontent.com/${this.repo}/main/manifest.json?_t=${Date.now()}`;
+      const response = await fetch(rawManifestUrl, { cache: 'no-store' });
 
       await StorageManager.set('atab_last_update_check', Date.now());
 
       if (response.ok) {
-        const release = await response.json();
-        const latestVer = release.tag_name || release.name || '';
-        
+        const remoteManifest = await response.json();
+        const latestVer = remoteManifest.version || '';
+
         if (this.isNewerVersion(latestVer, this.currentVersion)) {
+          // Son commit mesajlarını çekerek otomatik "Neler Yeni?" oluştur
+          let changelogText = `- Yeni versiyon v${latestVer} yayınlandı.\n- Performans ve arayüz iyileştirmeleri yapıldı.`;
+          try {
+            const commitsRes = await fetch(`https://api.github.com/repos/${this.repo}/commits?per_page=5`, {
+              headers: { 'Accept': 'application/vnd.github.v3+json' },
+              cache: 'no-cache'
+            });
+            if (commitsRes.ok) {
+              const commits = await commitsRes.json();
+              if (Array.isArray(commits) && commits.length > 0) {
+                const commitMessages = commits
+                  .map(c => c.commit?.message?.split('\n')[0])
+                  .filter(m => m && !m.toLowerCase().startsWith('merge') && !m.toLowerCase().startsWith('chore: configure'))
+                  .slice(0, 4);
+
+                if (commitMessages.length > 0) {
+                  changelogText = commitMessages.map(msg => `- ${msg}`).join('\n');
+                }
+              }
+            }
+          } catch (e) {
+            console.log('Commit notları alınamadı, varsayılan gösteriliyor');
+          }
+
           this.latestRelease = {
-            version: latestVer,
-            name: release.name || `Sürüm ${latestVer}`,
-            body: release.body || 'Yeni geliştirmeler ve hata düzeltmeleri yapıldı.',
-            published_at: release.published_at,
-            html_url: release.html_url,
-            download_url: release.assets && release.assets.length > 0 ? release.assets[0].browser_download_url : release.zipball_url
+            version: `v${latestVer}`,
+            name: `🎉 ATAB v${latestVer} Yayında!`,
+            body: changelogText,
+            published_at: new Date().toISOString(),
+            html_url: `https://github.com/${this.repo}`
           };
 
           await StorageManager.set('atab_cached_update', this.latestRelease);
@@ -145,7 +166,7 @@ const UpdateManager = {
 
           if (isManual) {
             this.openModal(this.latestRelease);
-            App.showToast(`🎉 Yeni sürüm bulundu: ${latestVer}`);
+            App.showToast(`🎉 Yeni sürüm bulundu: v${latestVer}`);
           }
         } else {
           // Güncel
@@ -156,17 +177,16 @@ const UpdateManager = {
           }
         }
       } else if (response.status === 404) {
-        // Henüz release oluşturulmamış veya repo bulunamadı
         if (isManual) {
-          App.showToast(`ℹ️ GitHub üzerinde henüz bir Release (Sürüm) bulunamadı.`);
+          App.showToast(`ℹ️ GitHub deposu henüz oluşturulmamış veya manifest bulunamadı.`);
         }
       } else {
-        throw new Error(`GitHub API Status: ${response.status}`);
+        throw new Error(`GitHub Status: ${response.status}`);
       }
     } catch (err) {
       console.warn('Güncelleme denetleme hatası:', err);
       if (isManual) {
-        App.showToast(`⚠️ Güncelleme kontrol edilemedi: GitHub bağlantısını kontrol edin.`);
+        App.showToast(`⚠️ Güncelleme kontrol edilemedi: GitHub bağlantınızı kontrol edin.`);
       }
     } finally {
       this.isChecking = false;
@@ -203,7 +223,7 @@ const UpdateManager = {
         });
       }
 
-      // 2. İndirme veya yeniden yükleme aksiyonu
+      // 2. Yeniden yükleme aksiyonu
       setTimeout(() => {
         if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.reload) {
           chrome.runtime.reload();
@@ -211,7 +231,7 @@ const UpdateManager = {
         } else {
           window.location.reload();
         }
-      }, 1500);
+      }, 1200);
 
     } catch (err) {
       console.error('Güncelleme uygulama hatası:', err);
@@ -341,7 +361,7 @@ const UpdateManager = {
       name: '🎉 ATAB v1.1.0 - Büyük Güncelleme & Yenilikler',
       body: `## Yenilikler\n- Otomatik tek tıkla güncelleme motoru entegre edildi.\n- Arama motorlarına sesli ve görsel arama optimizasyonu yapıldı.\n- Yeni temalar ve hız iyileştirmeleri eklendi.\n- Bellek kullanımı %30 optimize edildi.`,
       published_at: new Date().toISOString(),
-      html_url: `https://github.com/${this.repo}/releases`
+      html_url: `https://github.com/${this.repo}`
     };
 
     this.latestRelease = testRelease;

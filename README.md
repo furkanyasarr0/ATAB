@@ -79,24 +79,19 @@
 
 ---
 
-## 🛠️ Yeni Versiyon Yayınlama (Geliştirici Rehberi)
+## 🛠️ Yeni Versiyon Yayınlama (Sadece 2 Adım!)
 
-Yeni özellikler ekleyip arkadaşlarınız için güncelleme yayınlamak istediğinizde:
+Yeni özellikler ekleyip arkadaşlarınız için güncelleme yayınlamak istediğinizde hiçbir Release veya panel işlemiyle uğraşmanıza gerek yoktur:
 
 1. `manifest.json` dosyasındaki versiyon numarasını artırın (örn: `"1.1.0"`).
-2. Değişiklikleri commit edip GitHub'a gönderin:
+2. Değişiklikleri GitHub'a pushlayın:
    ```bash
    git add .
-   git commit -m "feat: v1.1.0 güncellemesi"
+   git commit -m "feat: yeni temalar ve hız iyileştirmesi"
    git push origin main
    ```
-3. GitHub reponuzda **Releases -> Draft a new release** bölümüne gidin:
-   - **Tag version:** `v1.1.0`
-   - **Release title:** `🎉 ATAB v1.1.0 Güncellemesi`
-   - **Description:** Nelerin değiştiğini yazın (Arkadaşlarınızın ekranındaki bildirimde bu notlar otomatik gösterilecektir).
-   - **Publish release** butonuna tıklayın.
 
-Otomatik GitHub Actions iş akışı paketi oluşturacak ve arkadaşlarınız yeni bir sekme açtığında **"🔥 Yeni Güncelleme: v1.1.0"** bildirimiyle tek tıkla güncelleyebilecektir.
+✨ **İşiniz bu kadar!** Eklenti doğrudan GitHub'daki `manifest.json` ve son commit mesajlarınızı okuyarak arkadaşlarınızın ekranında **"🔥 Yeni Güncelleme: v1.1.0"** bildirimini ve yenilikleri otomatik gösterecektir.
 
 ---
 
