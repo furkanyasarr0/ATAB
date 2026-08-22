@@ -16,10 +16,13 @@ const UpdateManager = {
         this.currentVersion = manifest.version || '1.0.0';
       }
 
-      // Kaydedilmiş repo ayarını al
+      // Kaydedilmiş repo ayarını al (Eski geçersiz değerleri varsayılana sıfırla)
       const customRepo = await StorageManager.get('atab_github_repo');
-      if (customRepo) {
+      if (customRepo && !customRepo.includes('furkanksl')) {
         this.repo = customRepo;
+      } else {
+        this.repo = this.DEFAULT_REPO;
+        await StorageManager.set('atab_github_repo', this.DEFAULT_REPO);
       }
 
       this.setupEventListeners();
@@ -106,7 +109,7 @@ const UpdateManager = {
     return false;
   },
 
-  // Güncelleme Kontrolü (Doğrudan GitHub manifest.json dosyasını sorgular - Release gerektirmez!)
+  // Güncelleme Kontrolü (Doğrudan GitHub manifest.json dosyasını sorgular)
   async check(isManual = false) {
     if (this.isChecking) return;
     this.isChecking = true;
@@ -118,19 +121,47 @@ const UpdateManager = {
     }
 
     try {
-      // 1. GitHub Raw üzerinden manifest.json'ı çek (Zaman damgası ile önbellek baypas edilir)
-      const rawManifestUrl = `https://raw.githubusercontent.com/${this.repo}/main/manifest.json?_t=${Date.now()}`;
-      const response = await fetch(rawManifestUrl, { cache: 'no-store' });
+      let remoteManifest = null;
+
+      // 1. Yol: GitHub Raw manifest.json
+      try {
+        const rawManifestUrl = `https://raw.githubusercontent.com/${this.repo}/main/manifest.json?_t=${Date.now()}`;
+        const rawRes = await fetch(rawManifestUrl, { cache: 'no-store' });
+        if (rawRes.ok) {
+          remoteManifest = await rawRes.json();
+        }
+      } catch (rawErr) {
+        console.warn('Raw fetch uyarısı, API deneniyor:', rawErr);
+      }
+
+      // 2. Yol (Yedek): GitHub REST API Contents
+      if (!remoteManifest) {
+        try {
+          const apiManifestUrl = `https://api.github.com/repos/${this.repo}/contents/manifest.json?_t=${Date.now()}`;
+          const apiRes = await fetch(apiManifestUrl, {
+            headers: { 'Accept': 'application/vnd.github.v3+json' },
+            cache: 'no-store'
+          });
+          if (apiRes.ok) {
+            const fileData = await apiRes.json();
+            if (fileData.content) {
+              const decoded = atob(fileData.content.replace(/\s/g, ''));
+              remoteManifest = JSON.parse(decoded);
+            }
+          }
+        } catch (apiErr) {
+          console.warn('API fetch uyarısı:', apiErr);
+        }
+      }
 
       await StorageManager.set('atab_last_update_check', Date.now());
 
-      if (response.ok) {
-        const remoteManifest = await response.json();
-        const latestVer = remoteManifest.version || '';
+      if (remoteManifest && remoteManifest.version) {
+        const latestVer = remoteManifest.version;
 
         if (this.isNewerVersion(latestVer, this.currentVersion)) {
           // Son commit mesajlarını çekerek otomatik "Neler Yeni?" oluştur
-          let changelogText = `- Yeni versiyon v${latestVer} yayınlandı.\n- Performans ve arayüz iyileştirmeleri yapıldı.`;
+          let changelogText = `- Yeni versiyon v${latestVer} yayınlandı.\n- Performans ve arayüz geliştirmeleri yapıldı.`;
           try {
             const commitsRes = await fetch(`https://api.github.com/repos/${this.repo}/commits?per_page=5`, {
               headers: { 'Accept': 'application/vnd.github.v3+json' },
@@ -150,7 +181,7 @@ const UpdateManager = {
               }
             }
           } catch (e) {
-            console.log('Commit notları alınamadı, varsayılan gösteriliyor');
+            console.log('Commit notları varsayılan gösteriliyor');
           }
 
           this.latestRelease = {
@@ -176,17 +207,13 @@ const UpdateManager = {
             App.showToast(`✅ Eklentiniz en güncel sürümde (v${this.currentVersion})`);
           }
         }
-      } else if (response.status === 404) {
-        if (isManual) {
-          App.showToast(`ℹ️ GitHub deposu henüz oluşturulmamış veya manifest bulunamadı.`);
-        }
       } else {
-        throw new Error(`GitHub Status: ${response.status}`);
+        throw new Error('Manifest içeriğine ulaşılamadı');
       }
     } catch (err) {
-      console.warn('Güncelleme denetleme hatası:', err);
+      console.error('Güncelleme denetleme hatası:', err);
       if (isManual) {
-        App.showToast(`⚠️ Güncelleme kontrol edilemedi: GitHub bağlantınızı kontrol edin.`);
+        App.showToast(`⚠️ Güncelleme kontrol edilemedi: İnternet veya GitHub bağlantısını kontrol edin.`);
       }
     } finally {
       this.isChecking = false;

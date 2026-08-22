@@ -30,6 +30,10 @@
     "activeTab",
     "contextMenus"
   ],
+  "host_permissions": [
+    "https://raw.githubusercontent.com/*",
+    "https://api.github.com/*"
+  ],
   "commands": {
     "save-bookmark": {
       "suggested_key": {
