@@ -398,8 +398,10 @@ const SettingsManager = {
     const inputRepo = document.getElementById('setting-github-repo');
     if (btnSaveRepo && inputRepo) {
       btnSaveRepo.addEventListener('click', async () => {
-        const val = inputRepo.value.trim();
-        if (val) {
+        const rawVal = inputRepo.value.trim();
+        if (rawVal) {
+          const val = typeof UpdateManager !== 'undefined' ? UpdateManager.cleanRepoName(rawVal) : rawVal;
+          inputRepo.value = val;
           await StorageManager.set('atab_github_repo', val);
           if (typeof UpdateManager !== 'undefined') {
             UpdateManager.repo = val;

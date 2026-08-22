@@ -8,6 +8,15 @@ const UpdateManager = {
   latestRelease: null,
   isChecking: false,
 
+  cleanRepoName(repoStr) {
+    if (!repoStr) return this.DEFAULT_REPO;
+    let clean = repoStr.trim();
+    clean = clean.replace(/^https?:\/\/github\.com\//i, '');
+    clean = clean.replace(/\.git$/i, '');
+    clean = clean.replace(/^\/+|\/+$/g, '');
+    return clean || this.DEFAULT_REPO;
+  },
+
   async init() {
     try {
       // Manifest versiyonunu dinamik al
@@ -16,10 +25,10 @@ const UpdateManager = {
         this.currentVersion = manifest.version || '1.0.0';
       }
 
-      // Kaydedilmiş repo ayarını al (Eski geçersiz değerleri varsayılana sıfırla)
+      // Kaydedilmiş repo ayarını al ve temizle
       const customRepo = await StorageManager.get('atab_github_repo');
       if (customRepo && !customRepo.includes('furkanksl')) {
-        this.repo = customRepo;
+        this.repo = this.cleanRepoName(customRepo);
       } else {
         this.repo = this.DEFAULT_REPO;
         await StorageManager.set('atab_github_repo', this.DEFAULT_REPO);
@@ -114,6 +123,14 @@ const UpdateManager = {
     if (this.isChecking) return;
     this.isChecking = true;
 
+    // Aktif repo bilgisini garantile
+    const inputRepo = document.getElementById('setting-github-repo');
+    if (inputRepo && inputRepo.value) {
+      this.repo = this.cleanRepoName(inputRepo.value);
+    } else if (!this.repo) {
+      this.repo = this.DEFAULT_REPO;
+    }
+
     const manualBtn = document.getElementById('btn-check-updates-manual');
     if (manualBtn && isManual) {
       manualBtn.disabled = true;
@@ -122,22 +139,23 @@ const UpdateManager = {
 
     try {
       let remoteManifest = null;
+      const targetRepo = this.cleanRepoName(this.repo);
 
       // 1. Yol: GitHub Raw manifest.json
       try {
-        const rawManifestUrl = `https://raw.githubusercontent.com/${this.repo}/main/manifest.json?_t=${Date.now()}`;
+        const rawManifestUrl = `https://raw.githubusercontent.com/${targetRepo}/main/manifest.json?_t=${Date.now()}`;
         const rawRes = await fetch(rawManifestUrl, { cache: 'no-store' });
         if (rawRes.ok) {
           remoteManifest = await rawRes.json();
         }
       } catch (rawErr) {
-        console.warn('Raw fetch uyarısı, API deneniyor:', rawErr);
+        console.warn('Raw fetch uyarısı:', rawErr);
       }
 
       // 2. Yol (Yedek): GitHub REST API Contents
       if (!remoteManifest) {
         try {
-          const apiManifestUrl = `https://api.github.com/repos/${this.repo}/contents/manifest.json?_t=${Date.now()}`;
+          const apiManifestUrl = `https://api.github.com/repos/${targetRepo}/contents/manifest.json?_t=${Date.now()}`;
           const apiRes = await fetch(apiManifestUrl, {
             headers: { 'Accept': 'application/vnd.github.v3+json' },
             cache: 'no-store'
@@ -163,7 +181,7 @@ const UpdateManager = {
           // Son commit mesajlarını çekerek otomatik "Neler Yeni?" oluştur
           let changelogText = `- Yeni versiyon v${latestVer} yayınlandı.\n- Performans ve arayüz geliştirmeleri yapıldı.`;
           try {
-            const commitsRes = await fetch(`https://api.github.com/repos/${this.repo}/commits?per_page=5`, {
+            const commitsRes = await fetch(`https://api.github.com/repos/${targetRepo}/commits?per_page=5`, {
               headers: { 'Accept': 'application/vnd.github.v3+json' },
               cache: 'no-cache'
             });
@@ -172,7 +190,7 @@ const UpdateManager = {
               if (Array.isArray(commits) && commits.length > 0) {
                 const commitMessages = commits
                   .map(c => c.commit?.message?.split('\n')[0])
-                  .filter(m => m && !m.toLowerCase().startsWith('merge') && !m.toLowerCase().startsWith('chore: configure'))
+                  .filter(m => m && !m.toLowerCase().startsWith('merge') && !m.toLowerCase().startsWith('chore: configure') && !m.toLowerCase().startsWith('fix: add host_permissions'))
                   .slice(0, 4);
 
                 if (commitMessages.length > 0) {
@@ -189,7 +207,7 @@ const UpdateManager = {
             name: `🎉 ATAB v${latestVer} Yayında!`,
             body: changelogText,
             published_at: new Date().toISOString(),
-            html_url: `https://github.com/${this.repo}`
+            html_url: `https://github.com/${targetRepo}`
           };
 
           await StorageManager.set('atab_cached_update', this.latestRelease);
@@ -213,7 +231,7 @@ const UpdateManager = {
     } catch (err) {
       console.error('Güncelleme denetleme hatası:', err);
       if (isManual) {
-        App.showToast(`⚠️ Güncelleme kontrol edilemedi: İnternet veya GitHub bağlantısını kontrol edin.`);
+        App.showToast(`⚠️ Güncelleme kontrol edilemedi. GitHub bağlantınızı kontrol edin.`);
       }
     } finally {
       this.isChecking = false;
@@ -363,9 +381,16 @@ const UpdateManager = {
     const curVerEl = document.getElementById('about-current-version');
     const lastCheckEl = document.getElementById('about-last-check-time');
     const repoInput = document.getElementById('setting-github-repo');
+    const repoLink = document.getElementById('about-repo-link');
 
     if (curVerEl) curVerEl.textContent = `v${this.currentVersion}`;
     
+    const cleanRepo = this.cleanRepoName(this.repo);
+    if (repoLink) {
+      repoLink.href = `https://github.com/${cleanRepo}`;
+      repoLink.textContent = `GitHub / ${cleanRepo}`;
+    }
+
     const lastCheck = await StorageManager.get('atab_last_update_check');
     if (lastCheckEl) {
       if (lastCheck) {
@@ -376,8 +401,8 @@ const UpdateManager = {
       }
     }
 
-    if (repoInput && !repoInput.value) {
-      repoInput.value = this.repo;
+    if (repoInput) {
+      repoInput.value = cleanRepo;
     }
   },
 
