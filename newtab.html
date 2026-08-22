@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yeni Sekme</title>
+  <link rel="icon" type="image/png" href="icons/icon48.png">
+  
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+  <!-- Dynamic Background Container -->
+  <div id="bg-container" class="bg-layer"></div>
+  <div class="bg-overlay"></div>
+
+  <!-- App Wrapper -->
+  <div class="app-layout">
+    
+    <!-- Top Bar Navigation -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <div class="app-brand" title="ATAB Yeni Sekme">
+          <img src="logo.png" alt="ATAB Logo" class="brand-logo">
+          <span class="brand-name">ATAB</span>
+        </div>
+      </div>
+      
+      <div class="top-bar-right">
+        <!-- Update Notification Button (Hidden by default, pulses when update available) -->
+        <button class="top-action-btn btn-update-badge" id="btn-update-notification" title="Yeni Güncelleme Mevcut! Tıkla ve İncele" style="display: none;">
+          <span class="update-pulse-dot"></span>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span class="btn-label" id="update-badge-version">v1.1.0</span>
+        </button>
+
+        <!-- Quick Notes Button -->
+        <button class="top-action-btn" id="btn-open-notes" title="Markdown Not Defteri">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <span class="btn-label">Notlar</span>
+        </button>
+
+        <!-- Bookmarks Drawer Button -->
+        <button class="top-action-btn" id="btn-open-bookmarks" title="Kaydedilen Yer İmleri">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          <span class="btn-label">Yer İmleri</span>
+          <span class="badge-count" id="bookmarks-count-badge">0</span>
+        </button>
+
+        <!-- Settings Button -->
+        <button class="top-action-btn" id="btn-open-settings" title="Ayarlar ve Tema">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="main-container">
+      
+      <!-- Hero: Clock, Date & Greeting -->
+      <section class="hero-section">
+        <div class="clock-display" id="clock-time">18:00</div>
+        <div class="date-display" id="clock-date">22 Ağustos Cumartesi</div>
+        <div class="greeting-display" id="clock-greeting">İyi Akşamlar</div>
+      </section>
+
+      <!-- Search Section -->
+      <section class="search-section">
+        <div class="search-bar-container">
+          <!-- Engine Selector Dropdown -->
+          <div class="search-engine-selector">
+            <button type="button" class="search-engine-btn" id="search-engine-btn" aria-label="Arama Motoru Seç"></button>
+            <div class="search-engine-dropdown" id="search-engine-dropdown"></div>
+          </div>
+
+          <!-- Main Search Form -->
+          <form id="search-form" class="search-form" autocomplete="off">
+            <input type="text" 
+                   id="search-input" 
+                   class="search-input" 
+                   placeholder="Yandex ile ara veya URL gir..." 
+                   autofocus>
+            
+            <!-- Clear Button -->
+            <button type="button" class="search-btn-icon" id="search-clear-btn" title="Temizle" style="display: none;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+
+            <!-- Voice Search Button -->
+            <button type="button" class="search-btn-icon" id="search-voice-btn" title="Sesli Arama">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </button>
+
+            <!-- Image Search / Upload Button -->
+            <button type="button" class="search-btn-icon" id="search-image-btn" title="Görsel ile Ara (veya resmi kopyalayıp Ctrl+V ile yapıştır)">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </button>
+            <input type="file" id="image-file-input" accept="image/*" style="display: none;">
+
+            <!-- Submit Button -->
+            <button type="submit" class="search-submit-btn" title="Ara">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            </button>
+          </form>
+        </div>
+        <div class="search-tip">İpucu: Panodaki herhangi bir resmi <kbd>Ctrl</kbd> + <kbd>V</kbd> ile yapıştırarak görsel arama yapabilirsiniz.</div>
+      </section>
+
+      <!-- Cards Grid Section -->
+      <section class="cards-section">
+        <div class="cards-grid" id="cards-grid">
+          <!-- Cards dynamically injected by cards.js -->
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ================= DRAWERS ================= -->
+
+  <!-- Bookmarks Drawer -->
+  <aside class="drawer" id="bookmarks-drawer">
+    <div class="drawer-overlay"></div>
+    <div class="drawer-content">
+      <div class="drawer-header">
+        <div class="drawer-title-wrap">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          <h3>Yer İmleri <span id="bookmarks-header-count"></span></h3>
+        </div>
+        <button class="drawer-close-btn" id="bookmarks-drawer-close">×</button>
+      </div>
+
+      <div class="drawer-toolbar">
+        <div class="search-box">
+          <input type="text" id="bookmarks-search-input" placeholder="Yer imlerinde ara...">
+        </div>
+        <div class="drawer-actions">
+          <button class="btn btn-sm btn-primary" id="btn-open-all-bookmarks">Hepsini Aç</button>
+          <button class="btn btn-sm btn-ghost" id="btn-clear-all-bookmarks" title="Temizle">Tümünü Sil</button>
+        </div>
+      </div>
+
+      <!-- Categories Filter Tabs -->
+      <div class="bookmarks-categories-bar custom-scroll" id="bookmarks-category-pills">
+        <!-- Category pills injected by bookmarks.js -->
+      </div>
+
+      <div class="drawer-body custom-scroll" id="bookmarks-list">
+        <!-- Bookmark items injected by bookmarks.js -->
+      </div>
+
+      <div class="drawer-footer-hint">
+        <small>💡 Web sayfalarındayken <kbd>Alt + B</kbd> tuşuna basarak anında kaydedebilirsiniz.</small>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Markdown Notes Drawer -->
+  <aside class="drawer" id="notes-drawer">
+    <div class="drawer-overlay"></div>
+    <div class="drawer-content notes-drawer-content">
+      <div class="drawer-header">
+        <div class="drawer-title-wrap">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <h3>Not Defteri</h3>
+        </div>
+        <button class="drawer-close-btn" id="notes-drawer-close">×</button>
+      </div>
+
+      <div class="notes-workspace">
+        <!-- Notes Sidebar List -->
+        <div class="notes-sidebar">
+          <div class="notes-sidebar-header">
+            <button class="btn btn-sm btn-primary btn-block" id="btn-add-note">+ Yeni Not</button>
+          </div>
+          <div class="notes-sidebar-search">
+            <input type="text" id="notes-search-input" placeholder="Not ara...">
+          </div>
+          <!-- Filter Tags / Assignees Pills -->
+          <div class="notes-filter-bar custom-scroll" id="notes-filter-pills">
+            <!-- Filter pills injected by notes.js -->
+          </div>
+          <div class="notes-list custom-scroll" id="notes-sidebar-list">
+            <!-- Note items injected by notes.js -->
+          </div>
+        </div>
+
+        <!-- Notes Active Editor / Preview Pane -->
+        <div class="notes-editor-pane">
+          <div class="notes-pane-header">
+            <input type="text" id="note-active-title" class="note-title-input" placeholder="Not Başlığı...">
+            <div class="notes-pane-actions">
+              <div class="view-mode-toggle">
+                <button class="btn btn-sm mode-toggle-btn" id="note-mode-edit">Düzenle</button>
+                <button class="btn btn-sm mode-toggle-btn active" id="note-mode-preview">Önizle</button>
+              </div>
+              <button class="btn btn-sm btn-icon" id="note-btn-copy" title="Kopyala">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Note Metadata Bar: Assignees (Kişiler) & Tags (Etiketler) -->
+          <div class="notes-meta-bar">
+            <!-- Assignees Area -->
+            <div class="meta-section">
+              <span class="meta-icon" title="Atanan Kişiler">👤</span>
+              <div class="meta-pills-list" id="note-assignees-container"></div>
+              <input type="text" id="note-add-assignee-input" class="meta-input" placeholder="+ Kişi (@)...">
+            </div>
+
+            <!-- Tags Area -->
+            <div class="meta-section">
+              <span class="meta-icon" title="Etiketler">🏷️</span>
+              <div class="meta-pills-list" id="note-tags-container"></div>
+              <input type="text" id="note-add-tag-input" class="meta-input" placeholder="+ Etiket (#)...">
+            </div>
+          </div>
+
+          <div class="notes-body-area custom-scroll">
+            <textarea id="note-editor-textarea" class="notes-textarea" placeholder="Markdown ile notunuzu yazın... (- [ ] yapılacaklar listesi, #etiket ve @kisi desteklenir)" style="display: none;"></textarea>
+            <div id="note-preview-container" class="notes-preview"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- Settings Modal -->
+  <div class="modal" id="settings-modal">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <h2>ATAB Ayarları</h2>
+          </div>
+          <button class="modal-close-btn" id="settings-modal-close">×</button>
+        </div>
+
+        <div class="settings-layout">
+          <!-- Sidebar Tabs -->
+          <div class="settings-tabs">
+            <button class="settings-tab-btn active" data-tab="general">⚙️ Genel</button>
+            <button class="settings-tab-btn" data-tab="engines">🔍 Arama Motorları</button>
+            <button class="settings-tab-btn" data-tab="theme">🎨 Tema & Görünüm</button>
+            <button class="settings-tab-btn" data-tab="backup">💾 Yedek & Veri</button>
+            <button class="settings-tab-btn" data-tab="about">ℹ️ Hakkında & Güncelleme</button>
+          </div>
+
+          <!-- Tab Content Panes -->
+          <div class="settings-content custom-scroll">
+            
+            <!-- Pane 1: General -->
+            <div class="settings-tab-pane active" id="tab-pane-general">
+              <h3>Genel Ayarlar</h3>
+              
+              <div class="setting-group">
+                <label class="setting-label" for="setting-user-name">Kullanıcı İsmi (Karşılama için)</label>
+                <input type="text" id="setting-user-name" class="form-control" placeholder="Örn: Furkan">
+                <span class="setting-hint">Boş bırakılırsa yalnızca "İyi akşamlar" gibi selam verilir.</span>
+              </div>
+
+              <div class="setting-group">
+                <label class="setting-checkbox">
+                  <input type="checkbox" id="setting-clock-24">
+                  <span>24 Saat Formatı Kullan</span>
+                </label>
+              </div>
+
+              <div class="setting-group">
+                <label class="setting-checkbox">
+                  <input type="checkbox" id="setting-show-seconds">
+                  <span>Saniyeyi Göster</span>
+                </label>
+              </div>
+
+              <div class="setting-group">
+                <label class="setting-checkbox">
+                  <input type="checkbox" id="setting-show-date">
+                  <span>Tarihi Göster</span>
+                </label>
+              </div>
+
+              <div class="setting-group">
+                <label class="setting-checkbox">
+                  <input type="checkbox" id="setting-open-newtab">
+                  <span>Siteleri ve Aramaları Yeni Sekmede Aç</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Pane 2: Engines -->
+            <div class="settings-tab-pane" id="tab-pane-engines">
+              <h3>Arama Motorları</h3>
+              <p class="setting-hint">Varsayılan motorunuzu seçin veya istediğiniz özel arama motorlarını ekleyin.</p>
+              
+              <div class="settings-engines-list" id="settings-engines-list">
+                <!-- Engines injected by settings.js -->
+              </div>
+
+              <hr class="modal-divider">
+
+              <h4>+ Özel Arama Motoru Ekle</h4>
+              <form id="form-add-custom-engine" class="add-engine-form">
+                <div class="form-row">
+                  <div class="form-col">
+                    <label>Motor Adı</label>
+                    <input type="text" id="new-engine-name" class="form-control" placeholder="Örn: Ecosia" required>
+                  </div>
+                  <div class="form-col">
+                    <label>Özel İkon URL (Opsiyonel)</label>
+                    <input type="url" id="new-engine-icon" class="form-control" placeholder="https://...">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Arama URL'si (Sorgu yerine <code>%s</code> ekleyin)</label>
+                  <input type="text" id="new-engine-url" class="form-control" placeholder="https://www.ecosia.org/search?q=%s" required>
+                </div>
+                <button type="submit" class="btn btn-primary">+ Motoru Ekle</button>
+              </form>
+            </div>
+
+            <!-- Pane 3: Theme -->
+            <div class="settings-tab-pane" id="tab-pane-theme">
+              <h3>Hazır Tema Şablonları</h3>
+              <div class="theme-presets-grid" id="theme-presets-grid">
+                <!-- Preset cards injected by settings.js -->
+              </div>
+
+              <hr class="modal-divider">
+
+              <h3>Detaylı Görünüm Özelleştirme</h3>
+              
+              <div class="setting-group">
+                <label class="setting-label">Vurgu Rengi (Accent Color)</label>
+                <div class="color-picker-wrap">
+                  <input type="color" id="theme-custom-accent" value="#ef4444">
+                  <span>Birincil butonlar ve vurgularda kullanılır</span>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-col">
+                  <label class="setting-label">Arka Plan Tipi</label>
+                  <select id="theme-custom-bgtype" class="form-control">
+                    <option value="color">Düz Renk</option>
+                    <option value="gradient">Degrade (Gradient)</option>
+                    <option value="image">Özel Duvar Kağıdı / Görsel</option>
+                  </select>
+                </div>
+                <div class="form-col">
+                  <label class="setting-label">Düz Renk / Kod</label>
+                  <input type="color" id="theme-custom-bgcolor" value="#0f172a">
+                </div>
+              </div>
+
+              <div class="setting-group">
+                <label class="setting-label">Görsel URL veya Bilgisayardan Yükle</label>
+                <div class="bg-upload-row">
+                  <input type="text" id="theme-custom-bgurl" class="form-control" placeholder="https://images.unsplash.com/...">
+                  <label class="btn btn-secondary btn-file-label">
+                    📁 Görsel Seç
+                    <input type="file" id="theme-custom-bgfile" accept="image/*" style="display: none;">
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-col">
+                  <label class="setting-label">Kart Cam Efekti (Blur): <span id="theme-custom-blur-val">16px</span></label>
+                  <input type="range" id="theme-custom-blur" min="0" max="40" value="16" class="form-range">
+                </div>
+                <div class="form-col">
+                  <label class="setting-label">Köşe Yuvarlaklığı: <span id="theme-custom-radius-val">16px</span></label>
+                  <input type="range" id="theme-custom-radius" min="0" max="32" value="16" class="form-range">
+                </div>
+              </div>
+            </div>
+
+            <!-- Pane 4: Backup -->
+            <div class="settings-tab-pane" id="tab-pane-backup">
+              <h3>Kalıcı Depolama & Yedekleme</h3>
+              <p class="setting-hint">ATAB tüm kartlarınızı, yer imlerinizi ve notlarınızı tarayıcınızın güvenli kalıcı hafızasında saklar. Başka bir bilgisayara geçmek veya manuel yedek almak için aşağıdaki seçenekleri kullanabilirsiniz.</p>
+
+              <div class="backup-actions-box">
+                <div class="backup-item">
+                  <div class="backup-info">
+                    <strong>Yedek İndir (Dışa Aktar)</strong>
+                    <span>Tüm kartlar, siteler, arama motorları, yer imleri ve notları içeren tek bir JSON dosyası indirir.</span>
+                  </div>
+                  <button class="btn btn-primary" id="btn-export-backup">💾 Yedek Dosyasını İndir</button>
+                </div>
+
+                <div class="backup-item">
+                  <div class="backup-info">
+                    <strong>Yedekten Geri Yükle (İçe Aktar)</strong>
+                    <span>Daha önce indirdiğiniz JSON dosyasını seçerek tüm düzeninizi geri getirin.</span>
+                  </div>
+                  <button class="btn btn-secondary" id="btn-import-backup">📂 JSON Dosyası Yükle</button>
+                  <input type="file" id="backup-file-input" accept=".json" style="display: none;">
+                </div>
+
+                <div class="backup-item danger-item">
+                  <div class="backup-info">
+                    <strong>Varsayılan Ayarlara Sıfırla</strong>
+                    <span>Tüm verileri siler ve eklentiyi ilk kurulduğu tertemiz haline getirir.</span>
+                  </div>
+                  <button class="btn btn-danger" id="btn-reset-defaults">⚠️ Sıfırla</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pane 5: About & Updates -->
+            <div class="settings-tab-pane" id="tab-pane-about">
+              <h3>Hakkında & Güncellemeler</h3>
+              <p class="setting-hint">ATAB Yeni Sekme eklentisi en son sürümleri GitHub Releases üzerinden takip eder ve tek tıkla güncellemenizi sağlar.</p>
+
+              <div class="about-card">
+                <div class="about-brand-row">
+                  <img src="logo.png" alt="ATAB Logo" class="about-logo">
+                  <div class="about-brand-info">
+                    <h4>ATAB - Yeni Sekme</h4>
+                    <span class="about-version-tag" id="about-current-version">v1.0.0</span>
+                  </div>
+                </div>
+
+                <div class="about-info-grid">
+                  <div class="about-info-item">
+                    <span class="info-label">Son Güncelleme Denetimi:</span>
+                    <strong class="info-value" id="about-last-check-time">Henüz yapılmadı</strong>
+                  </div>
+                  <div class="about-info-item">
+                    <span class="info-label">Geliştirici & Kaynak:</span>
+                    <a href="https://github.com/furkanksl/ATAB" target="_blank" class="info-link" id="about-repo-link">GitHub / furkanksl / ATAB</a>
+                  </div>
+                </div>
+
+                <div class="about-actions-row">
+                  <button type="button" class="btn btn-primary" id="btn-check-updates-manual">
+                    🔄 Güncellemeleri Şimdi Denetle
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-test-update-notify" title="Arayüz ve güncelleme bildirimini test et">
+                    🧪 Bildirim Test Et
+                  </button>
+                </div>
+              </div>
+
+              <div class="setting-group" style="margin-top: 20px;">
+                <label class="setting-label" for="setting-github-repo">GitHub Deposu (KullanıcıAdı / DepoAdı)</label>
+                <div class="repo-input-row">
+                  <input type="text" id="setting-github-repo" class="form-control" value="furkanksl/ATAB" placeholder="kullanici/repo">
+                  <button type="button" class="btn btn-secondary" id="btn-save-github-repo">Kaydet</button>
+                </div>
+                <span class="setting-hint">Farklı bir GitHub deposundaki sürümleri takip etmek isterseniz buradan değiştirebilirsiniz.</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card Add / Edit Modal -->
+  <div class="modal" id="card-modal">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modal-card-header">Yeni Kart Ekle</h3>
+          <button class="modal-close-btn" id="modal-card-close">×</button>
+        </div>
+        <form id="card-form">
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="modal-card-title">Kart Başlığı</label>
+              <input type="text" id="modal-card-title" class="form-control" placeholder="Örn: Sosyal Medya, İş, Haberler" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-ghost" id="modal-card-cancel">İptal</button>
+            <button type="submit" class="btn btn-primary">Kaydet</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Site Add / Edit Modal -->
+  <div class="modal" id="site-modal">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modal-site-header">Yeni Site Ekle</h3>
+          <button class="modal-close-btn" id="modal-site-close">×</button>
+        </div>
+        <form id="site-form">
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="modal-site-url">Site URL Adresi</label>
+              <input type="text" id="modal-site-url" class="form-control" placeholder="https://example.com" required>
+            </div>
+            <div class="form-group">
+              <label for="modal-site-title">Başlık (Opsiyonel)</label>
+              <input type="text" id="modal-site-title" class="form-control" placeholder="Site İsmi">
+            </div>
+            <div class="site-preview-row">
+              <span>Otomatik Logo Önizleme:</span>
+              <img id="modal-site-icon-preview" class="modal-site-icon-preview" alt="" style="display: none;">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-ghost" id="modal-site-cancel">İptal</button>
+            <button type="submit" class="btn btn-primary">Kaydet</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Bookmark to Card Modal -->
+  <div class="modal" id="add-to-card-modal">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Yer İmini Karta Ekle</h3>
+          <button class="modal-close-btn" id="add-to-card-close">×</button>
+        </div>
+        <div class="modal-body">
+          <p class="add-to-card-desc">
+            <strong id="add-to-card-item-name">...</strong> sitesini hangi karta eklemek istersiniz?
+          </p>
+          <div class="form-group">
+            <label for="select-target-card">Hedef Kart</label>
+            <select id="select-target-card" class="form-control"></select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" id="add-to-card-cancel">İptal</button>
+          <button type="button" class="btn btn-primary" id="btn-confirm-add-to-card">Karta Ekle</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Search / Ctrl+V Modal -->
+  <div class="modal" id="image-search-modal">
+    <div class="modal-dialog modal-md">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>🖼️ Görsel Arama</h3>
+          <button class="modal-close-btn" id="img-search-close">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="image-search-preview-wrap">
+            <img id="image-search-preview" class="image-search-preview-img" alt="Pasted Image">
+          </div>
+          <p class="image-search-desc">Yapıştırdığınız görsel ile hangi arama motorunda arama yapmak istersiniz?</p>
+          <div class="image-search-options">
+            <button class="btn btn-primary btn-engine-search" id="img-search-yandex">
+              <span class="btn-icon-wrap"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="#FC3F1D" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.62 14.73h-2.19l-3.32-5.41v5.41H7.88V7.27h2.23v5.18l3.14-5.18h2.24l-3.92 6.09 4.05 6.37z"/></svg></span>
+              <span>Yandex Görsel Arama (Varsayılan)</span>
+            </button>
+            <button class="btn btn-secondary btn-engine-search" id="img-search-google">
+              <span class="btn-icon-wrap"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg></span>
+              <span>Google Lens ile Ara</span>
+            </button>
+            <button class="btn btn-secondary btn-engine-search" id="img-search-bing">
+              <span class="btn-icon-wrap"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="#008373" d="M4 3l4.5 1.6v12.2l5.7-3.3-2.8-4.2 4.4-1.5 4.2 7.2-11.5 6V3z"/></svg></span>
+              <span>Bing Görsel Arama</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Update Details & One-Click Apply Modal -->
+  <div class="modal" id="update-modal">
+    <div class="modal-dialog modal-md">
+      <div class="modal-content update-modal-content">
+        <div class="modal-header">
+          <div class="update-header-info">
+            <span class="update-badge" id="update-modal-badge">v1.1.0</span>
+            <h3 id="update-modal-title">Yeni Güncelleme Mevcut!</h3>
+          </div>
+          <button class="modal-close-btn" id="modal-update-close">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="update-version-row">
+            <div class="version-badge-box">
+              <span class="version-label">Mevcut:</span>
+              <span class="version-val current" id="update-modal-current-ver">v1.0.0</span>
+            </div>
+            <div class="version-arrow">➔</div>
+            <div class="version-badge-box">
+              <span class="version-label">Yeni Sürüm:</span>
+              <span class="version-val new" id="update-modal-new-ver">v1.1.0</span>
+            </div>
+            <div class="update-date-box" id="update-modal-date"></div>
+          </div>
+
+          <div class="changelog-box">
+            <h4>🚀 Neler Yeni?</h4>
+            <div class="changelog-content" id="update-modal-changelog">
+              <!-- Filled by updater.js -->
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer update-modal-footer">
+          <a href="#" target="_blank" class="btn btn-ghost btn-sm" id="update-modal-github-link" style="margin-right: auto; display: none;">
+            🐙 GitHub'da İncele
+          </a>
+          <button type="button" class="btn btn-ghost" id="modal-update-cancel">Daha Sonra</button>
+          <button type="button" class="btn btn-primary btn-apply-update" id="btn-apply-update">
+            ⚡ Tek Tıkla Güncelle
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- JavaScript Scripts -->
+  <script src="js/storage.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/clock.js"></script>
+  <script src="js/search.js"></script>
+  <script src="js/cards.js"></script>
+  <script src="js/bookmarks.js"></script>
+  <script src="js/notes.js"></script>
+  <script src="js/updater.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
