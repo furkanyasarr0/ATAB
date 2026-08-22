@@ -243,45 +243,41 @@ const UpdateManager = {
     }
   },
 
-  // Tek Tıkla Güncelleme Uygulama
+  // Tek Tıkla Güncelleme Uygulama (Windows atab-update:// Protokolünü Tetikler)
   async applyUpdate() {
     const btn = document.getElementById('btn-apply-update');
     if (btn) {
       btn.disabled = true;
-      btn.innerHTML = '<span class="spinner-sm"></span> Güncelleniyor...';
+      btn.innerHTML = '<span class="spinner-sm"></span> Güncelleme Başlatılıyor...';
     }
 
-    App.showToast('🚀 Güncelleme uygulanıyor...');
+    App.showToast('🚀 Güncelleyici başlatılıyor...');
 
     try {
-      // 1. Tarayıcının yerel requestUpdateCheck API'sini tetikle
-      if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.requestUpdateCheck) {
-        chrome.runtime.requestUpdateCheck((status, details) => {
-          console.log('Update check status:', status, details);
-          if (status === 'update_available') {
-            App.showToast('Yeni sürüm yüklendi! Yeniden başlatılıyor...');
-            setTimeout(() => {
-              chrome.runtime.reload();
-            }, 1000);
-            return;
-          }
-        });
-      }
+      // 1. Windows atab-update:// protokolünü tetikle (guncelle.bat açılır)
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = 'atab-update://run';
+      document.body.appendChild(iframe);
+      setTimeout(() => iframe.remove(), 2000);
 
-      // 2. Yeniden yükleme aksiyonu
+      // 2. Kullanıcıya bilgi ver ve sayfayı otomatik yenile
       setTimeout(() => {
-        if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.reload) {
-          chrome.runtime.reload();
-          window.location.reload();
-        } else {
-          window.location.reload();
+        if (btn) {
+          btn.innerHTML = '✅ Güncellendi! Yenileniyor...';
         }
-      }, 1200);
+        App.showToast('✅ Güncelleme tamamlandı, sayfa yenileniyor...');
+        setTimeout(() => {
+          if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.reload) {
+            chrome.runtime.reload();
+          }
+          window.location.reload();
+        }, 1500);
+      }, 3000);
 
     } catch (err) {
-      console.error('Güncelleme uygulama hatası:', err);
-      App.showToast('Eklenti yenileniyor...');
-      window.location.reload();
+      console.error('Güncelleme tetikleme hatası:', err);
+      App.showToast('⚠️ Güncelleyici açılamadı. Klasördeki guncelle.bat dosyasına çift tıklayın.');
     }
   },
 
