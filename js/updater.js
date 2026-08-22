@@ -254,7 +254,7 @@ const UpdateManager = {
     App.showToast('🚀 Güncelleyici başlatılıyor...');
 
     try {
-      // 1. Windows atab-update:// protokolünü tetikle (guncelle.bat açılır)
+      // 1. Windows atab-update:// protokolünü tetikle (update.bat açılır)
       const iframe = document.createElement('iframe');
       iframe.style.display = 'none';
       iframe.src = 'atab-update://run';
@@ -277,7 +277,7 @@ const UpdateManager = {
 
     } catch (err) {
       console.error('Güncelleme tetikleme hatası:', err);
-      App.showToast('⚠️ Güncelleyici açılamadı. Klasördeki guncelle.bat dosyasına çift tıklayın.');
+      App.showToast('⚠️ Güncelleyici açılamadı. Klasördeki update.bat dosyasına çift tıklayın.');
     }
   },
 

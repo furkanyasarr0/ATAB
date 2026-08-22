@@ -69,13 +69,14 @@
    ```bash
    git clone https://github.com/furkanyasarr0/ATAB.git
    ```
-2. Tarayıcınızda (Chrome, Brave, Edge, Opera) eklentiler sayfasına gidin:
+2. Klasördeki **`setup.bat`** dosyasına bir defa çift tıklayın *(Eklenti içinden tek tıkla güncelleme desteğini açar)*.
+3. Tarayıcınızda (Chrome, Brave, Edge, Opera) eklentiler sayfasına gidin:
    - Chrome: `chrome://extensions`
    - Edge: `edge://extensions`
    - Brave: `brave://extensions`
-3. Sağ üst köşedeki **"Geliştirici Modu" (Developer Mode)** seçeneğini aktif edin.
-4. Sol üstteki **"Paketlenmemiş Öğe Yükle" (Load Unpacked)** butonuna tıklayın ve ATAB klasörünü seçin.
-5. Yeni bir sekme açın. ATAB kullanıma hazır! 🎉
+4. Sağ üst köşedeki **"Geliştirici Modu" (Developer Mode)** seçeneğini aktif edin.
+5. Sol üstteki **"Paketlenmemiş Öğe Yükle" (Load Unpacked)** butonuna tıklayın ve ATAB klasörünü seçin.
+6. Yeni bir sekme açın. ATAB kullanıma hazır! 🎉
 
 ---
 
